@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Quiz Autofill",
+  "version": "1.0",
+  "content_scripts": [
+    {
+      "matches": ["*://*/mod/quiz/attempt.php*"],
+      "js": ["content.js"]
+    }
+  ]
+}
