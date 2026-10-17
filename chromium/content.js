@@ -14,6 +14,7 @@
       <textarea rows="12" cols="30" placeholder="one answer per line"></textarea><br>
       <button id="qa-fill">Fill</button>
       <button id="qa-clear">Clear</button>
+      <button id="qa-delete">Delete</button>
     </div>`;
     document.body.appendChild(box);
 
@@ -26,6 +27,14 @@
         b.style.display = b.style.display === 'none' ? '' : 'none';
     };
     box.querySelector('#qa-clear').onclick = () => { ta.value = ''; ta.oninput(); };
+    box.querySelector('#qa-delete').onclick = () => {
+        document.querySelectorAll('.que input[type="text"]').forEach(f => {
+            if (!f.value) return;
+            f.value = '';
+            f.dispatchEvent(new Event('input', { bubbles: true }));
+            f.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    };
     box.querySelector('#qa-fill').onclick = () => {
         const answers = ta.value.split('\n').map(s => s.trim()).filter(Boolean);
         const fields = [...document.querySelectorAll('.que input[type="text"]')];
@@ -35,5 +44,5 @@
             f.dispatchEvent(new Event('input', { bubbles: true }));
             f.dispatchEvent(new Event('change', { bubbles: true }));
         });
-    };
+    }
 })();
