@@ -26,6 +26,7 @@ It adds a floating panel to quiz attempt pages. You paste your answers, click **
 - Paste answers one per line, then fill every text field with one click
 - Your answer list is saved automatically and is still there after a reload or on the next quiz page
 - **Clear** button to empty the list
+- **Delete** button to erase every filled-in answer from the text fields on the page
 - **−** button to collapse the panel so it stays out of the way
 - Fires the page's `input` and `change` events, so Moodle registers the values as if you typed them
 - No permissions requested, no network access, no tracking. Everything stays in your browser.
@@ -117,6 +118,7 @@ The steps are the same. Only the address of the extensions page changes:
 |---|---|
 | **Fill** | Fills the text fields on the current page with your list |
 | **Clear** | Empties the answer list, including the saved copy |
+| **Delete** | Erases the answers from every text field on the current page that has something in it. Your answer list in the panel is kept. |
 | **−** | Collapses or expands the panel |
 
 ### Good to know
