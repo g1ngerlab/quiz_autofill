@@ -1,6 +1,6 @@
 # Quiz Autofill
 
-A small browser extension for Chromium-based browsers (Chrome, Edge, Brave, Opera, Vivaldi) that fills the text-answer fields of a **Moodle quiz** from a list you paste in, one answer per line.
+A small browser extension for **Firefox** and Chromium-based browsers (Chrome, Edge, Brave, Opera, Vivaldi) that fills the text-answer fields of a **Moodle quiz** from a list you paste in, one answer per line.
 
 It adds a floating panel to quiz attempt pages. You paste your answers, click **Fill**, and each answer goes into the matching text field, in order from top to bottom.
 
@@ -11,6 +11,7 @@ It adds a floating panel to quiz attempt pages. You paste your answers, click **
 - [Features](#features)
 - [1. Download the project](#1-download-the-project)
 - [2. Add the extension to Chrome](#2-add-the-extension-to-chrome)
+- [2b. Add the extension to Firefox](#2b-add-the-extension-to-firefox)
 - [3. How to use it](#3-how-to-use-it)
 - [Updating the extension](#updating-the-extension)
 - [Using it on other sites](#using-it-on-other-sites)
@@ -46,7 +47,7 @@ Pick **one** of these options.
    - **Linux:** `unzip quiz_autofill-main.zip`
 5. Move the extracted folder somewhere permanent, for example `Documents/quiz_autofill`.
 
-> **Important:** Chrome loads the extension straight from this folder. If you delete or move the folder later, the extension stops working. Don't leave it in a temporary location.
+> **Important:** The browser loads the extension straight from this folder. If you delete or move the folder later, the extension stops working. Don't leave it in a temporary location.
 
 ### Option B: Clone with Git
 
@@ -58,6 +59,17 @@ cd quiz_autofill
 ```
 
 With Git, updating later is easier (see [Updating the extension](#updating-the-extension)).
+
+---
+
+The project has two versions of the extension:
+
+| Folder | Use it for |
+|---|---|
+| `chromium/` | Chrome, Edge, Brave, Opera, Vivaldi → see [section 2](#2-add-the-extension-to-chrome) |
+| `firefox/` | Firefox → see [section 2b](#2b-add-the-extension-to-firefox) |
+
+Both work the same way once installed.
 
 ---
 
@@ -92,6 +104,57 @@ The steps are the same. Only the address of the extensions page changes:
 | Vivaldi | `vivaldi://extensions` | Same as Chrome |
 
 > **Note:** On startup, Chrome may show a banner such as *"Disable developer mode extensions"*. This is normal for unpacked extensions. Click **✕** or **Keep** to dismiss it. Don't click **Disable**.
+
+---
+
+## 2B. Add the extension to Firefox
+
+Firefox only installs extensions permanently if Mozilla has signed them. For an extension loaded from a folder, you have two options.
+
+### Option A: Temporary add-on (any Firefox, quickest)
+
+1. Open Firefox and go to:
+   ```
+   about:debugging#/runtime/this-firefox
+   ```
+   You can also type `about:debugging` in the address bar and click **This Firefox** in the left sidebar.
+2. Click **Load Temporary Add-on…**.
+3. In the file picker, open the project's **`firefox`** folder, select the **`manifest.json`** file inside it, and click **Open**.
+   ```
+   quiz_autofill/firefox/manifest.json   ← select this file
+   ```
+4. **Quiz Autofill** now appears under **Temporary Extensions**.
+
+> **Important:** Firefox removes temporary add-ons when it **closes**. After every restart, repeat steps 1–3 before your quiz.
+
+### Option B: Permanent install (Firefox Developer Edition, Nightly or ESR)
+
+Regular Firefox doesn't allow unsigned extensions. [Firefox Developer Edition](https://www.mozilla.org/firefox/developer/), Nightly and ESR do, once you turn off the signature check:
+
+1. Go to `about:config` and accept the warning.
+2. Search for `xpinstall.signatures.required` and double-click it to set it to **false**.
+3. Pack the extension into a ZIP. The files must be at the **top level** of the ZIP, not inside a `firefox` folder:
+   - **Windows:** open the `firefox` folder, select `manifest.json` and `content.js`, right-click, then choose **Send to → Compressed (zipped) folder**.
+   - **macOS / Linux:**
+     ```bash
+     cd quiz_autofill/firefox
+     zip ../quiz_autofill_firefox.zip manifest.json content.js
+     ```
+4. Rename the ZIP so it ends in `.xpi`, for example `quiz_autofill_firefox.xpi`.
+5. Go to `about:addons`, click the **⚙ gear** icon, choose **Install Add-on From File…**, and select the `.xpi` file. Click **Add** when Firefox asks.
+
+The extension now stays installed after a restart.
+
+### Allow the extension on your Moodle site
+
+Firefox may ask for your permission before an extension runs on a site. If the panel doesn't show up on the quiz page:
+
+1. On the quiz page, click the **puzzle-piece** (Extensions) icon in the toolbar.
+2. Find **Quiz Autofill** and choose **Always allow on this site**.
+
+You can also go to `about:addons`, open **Quiz Autofill**, select the **Permissions** tab, and turn on website access.
+
+Then reload the quiz page.
 
 ---
 
@@ -136,21 +199,23 @@ The steps are the same. Only the address of the extensions page changes:
 1. Get the new files:
    - **ZIP:** download the ZIP again and replace the contents of your existing folder. Keep the same folder location.
    - **Git:** run `git pull` inside the project folder.
-2. Go to `chrome://extensions`.
-3. Click the **↻ reload** icon on the **Quiz Autofill** card.
-4. Reload any open quiz tabs.
+2. Reload the extension:
+   - **Chrome:** go to `chrome://extensions` and click the **↻ reload** icon on the **Quiz Autofill** card.
+   - **Firefox (temporary add-on):** go to `about:debugging#/runtime/this-firefox` and click **Reload** under **Quiz Autofill**.
+   - **Firefox (`.xpi` install):** build a new `.xpi` as described in [Option B](#option-b-permanent-install-firefox-developer-edition-nightly-or-esr) and install it again from `about:addons`.
+3. Reload any open quiz tabs.
 
 ## Using it on other sites
 
-By default, the extension only runs on Moodle quiz attempt pages. If your quiz uses a different URL, edit `matches` in `chromium/manifest.json`:
+By default, the extension only runs on Moodle quiz attempt pages. If your quiz uses a different URL, edit `matches` in `chromium/manifest.json` (or `firefox/manifest.json` for Firefox):
 
 ```json
 "matches": ["*://*/mod/quiz/attempt.php*", "https://your-site.example.com/some/path/*"]
 ```
 
-Then click **↻ reload** on the extension card in `chrome://extensions`.
+Then reload the extension as described in [Updating the extension](#updating-the-extension).
 
-The script looks for text inputs inside elements with the `.que` class, which is Moodle's question container. On a site that isn't Moodle, change the selector in `chromium/content.js` as well:
+The script looks for text inputs inside elements with the `.que` class, which is Moodle's question container. On a site that isn't Moodle, change the selector in `chromium/content.js` (or `firefox/content.js`) as well:
 
 ```js
 const fields = [...document.querySelectorAll('.que input[type="text"]')];
@@ -168,7 +233,11 @@ const fields = [...document.querySelectorAll('.que input[type="text"]')];
 | **Fill does nothing** | The questions on this page may not be text-input questions (for example multiple choice or essay). Or the answer box may be empty. |
 | **Answers land in the wrong fields** | Check the order of your lines, and check for missing answers. Remember that blank lines are skipped. |
 | **The extension disappeared after a restart** | The project folder was moved or deleted. Put it back, or load it again from its new location. |
-| **My saved list is gone** | The list is stored per site in the page's `localStorage`. Clearing browsing data, using Incognito, or opening a different Moodle domain gives you an empty list. |
+| **Firefox: the extension is gone after a restart** | Firefox removes temporary add-ons when it closes. Load it again from `about:debugging`, or use the [permanent install](#option-b-permanent-install-firefox-developer-edition-nightly-or-esr). |
+| **Firefox: "This add-on could not be installed because it has not been verified"** | Regular Firefox only installs signed `.xpi` files. Use the temporary add-on method, or use Firefox Developer Edition, Nightly or ESR with `xpinstall.signatures.required` set to `false`. |
+| **Firefox: "corrupt" error when installing the `.xpi`** | The ZIP contains a `firefox` folder instead of the files themselves. Zip `manifest.json` and `content.js` directly. |
+| **Firefox: the panel doesn't appear** | Allow the extension on the site: click the puzzle-piece icon, then **Quiz Autofill**, then **Always allow on this site**. Reload the page. |
+| **My saved list is gone** | The list is stored per site in the page's `localStorage`. Clearing browsing data, using Incognito or a Private Window, or opening a different Moodle domain gives you an empty list. |
 
 Developer tip: to see errors from the content script, open the quiz page, press **F12**, and check the **Console** tab.
 
@@ -176,9 +245,17 @@ Developer tip: to see errors from the content script, open the quiz page, press 
 
 ## Removing the extension
 
+**Chrome:**
+
 1. Go to `chrome://extensions`.
 2. Click **Remove** on the **Quiz Autofill** card.
-3. Optional: delete the project folder.
+
+**Firefox:**
+
+- **Temporary add-on:** go to `about:debugging#/runtime/this-firefox` and click **Remove**, or just restart Firefox.
+- **`.xpi` install:** go to `about:addons`, click **⋯** next to **Quiz Autofill**, then click **Remove**.
+
+Optional: delete the project folder.
 
 ---
 
