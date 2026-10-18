@@ -6,19 +6,66 @@
 
 (() => {
     const KEY = 'quiz_autofill_answers';
+    const POS_KEY = 'quiz_autofill_pos';
 
     // Build the floating control panel and add it to the page
     const box = document.createElement('div');
-    box.style = 'position:fixed;top:10px;right:10px;z-index:99999;background:#fff;border:2px solid #333;padding:8px;font:13px sans-serif';
+    box.style = 'position:fixed;top:10px;right:10px;z-index:99999;background:#fff;border:2px solid #333;font:13px sans-serif';
     box.innerHTML = `
-    <button id="qa-toggle" style="float:right">-</button>
-    <div id="qa-body">
+    <div id="qa-header" style="display:flex;align-items:center;justify-content:space-between;cursor:move;user-select:none;touch-action:none;padding:12px 8px;background:#eee">
+      <b></b>
+      <button id="qa-toggle">-</button>
+    </div>
+    <div id="qa-body" style="padding:8px;border-top:1px solid #333">
       <textarea rows="12" cols="30" placeholder="one answer per line"></textarea><br>
       <button id="qa-fill">Fill</button>
       <button id="qa-clear">Clear</button>
       <button id="qa-delete">Delete</button>
     </div>`;
     document.body.appendChild(box);
+
+    // Move the panel to (x, y), keeping it fully inside the viewport
+    const moveTo = (x, y) => {
+        const maxX = window.innerWidth - box.offsetWidth;
+        const maxY = window.innerHeight - box.offsetHeight;
+        box.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
+        box.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
+        box.style.right = 'auto';
+    };
+
+    // Restore the last saved panel position
+    try {
+        const pos = JSON.parse(localStorage.getItem(POS_KEY));
+        if (pos) moveTo(pos.x, pos.y);
+    } catch (e) {}
+
+    // Drag: move the panel by dragging its header, then save the new position
+    const header = box.querySelector('#qa-header');
+    let dragX = 0, dragY = 0, dragging = false;
+    header.onpointerdown = e => {
+        if (e.button !== 0 || e.target.closest('button')) return;
+        const r = box.getBoundingClientRect();
+        dragX = e.clientX - r.left;
+        dragY = e.clientY - r.top;
+        dragging = true;
+        header.setPointerCapture(e.pointerId);
+    };
+    header.onpointermove = e => {
+        if (dragging) moveTo(e.clientX - dragX, e.clientY - dragY);
+    };
+    header.onpointerup = header.onpointercancel = () => {
+        if (!dragging) return;
+        dragging = false;
+        const r = box.getBoundingClientRect();
+        try { localStorage.setItem(POS_KEY, JSON.stringify({ x: r.left, y: r.top })); } catch (e) {}
+    };
+
+    // Re-clamp the panel to its current position (e.g. after a resize or expanding it)
+    const keepOnScreen = () => {
+        const r = box.getBoundingClientRect();
+        moveTo(r.left, r.top);
+    };
+    window.addEventListener('resize', keepOnScreen);
 
     // Restore saved answers into the textarea and save them on every edit
     const ta = box.querySelector('textarea');
@@ -29,6 +76,7 @@
     box.querySelector('#qa-toggle').onclick = () => {
         const b = box.querySelector('#qa-body');
         b.style.display = b.style.display === 'none' ? '' : 'none';
+        keepOnScreen();
     };
 
     // Clear: empty the textarea (and the saved answers)
